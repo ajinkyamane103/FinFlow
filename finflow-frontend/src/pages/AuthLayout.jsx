@@ -1,0 +1,6 @@
+import { Link } from 'react-router-dom'
+import logo from '../assets/finflow-logo-cropped.png'
+
+export default function AuthLayout({ title, subtitle, children, footer }) { return <main className="grid min-h-screen bg-slate-50 lg:grid-cols-2"><section className="hidden bg-slate-950 p-12 text-white lg:flex lg:flex-col"><LogoMark /><div className="my-auto max-w-md"><p className="text-sm font-semibold uppercase tracking-[.2em] text-emerald-400">Money, with clarity</p><h1 className="mt-5 text-5xl font-bold leading-tight">A calmer way to manage what matters.</h1><p className="mt-5 text-lg leading-8 text-slate-300">Securely organize your accounts and make every move with confidence.</p></div><p className="text-sm text-slate-500">Personal finance management</p></section><section className="flex items-center justify-center p-5 sm:p-8"><div className="w-full max-w-md"><Link to="/login" className="mb-12 block lg:hidden"><LogoMark /></Link><h1 className="text-3xl font-bold tracking-tight text-slate-950">{title}</h1><p className="mt-2 text-slate-600">{subtitle}</p><div className="mt-8">{children}</div><p className="mt-7 text-center text-sm text-slate-600">{footer}</p></div></section></main> }
+
+function LogoMark() { return <img src={logo} alt="FinFlow" className="h-auto w-40" /> }

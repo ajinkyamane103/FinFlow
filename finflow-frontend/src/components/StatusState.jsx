@@ -1,0 +1,5 @@
+import { AlertCircle, Inbox, LoaderCircle } from 'lucide-react'
+
+export function LoadingState({ label = 'Loading…' }) { return <div className="flex min-h-40 items-center justify-center gap-2 text-sm text-slate-500"><LoaderCircle className="animate-spin" size={20} />{label}</div> }
+export function EmptyState({ title, detail, action }) { return <div className="card flex min-h-48 flex-col items-center justify-center p-7 text-center"><Inbox size={28} className="mb-3 text-slate-400" /><h3 className="font-semibold">{title}</h3><p className="mt-1 max-w-sm text-sm text-slate-500">{detail}</p>{action && <div className="mt-4">{action}</div>}</div> }
+export function ErrorState({ message, retry }) { return <div className="card flex items-start gap-3 p-5 text-sm text-rose-800"><AlertCircle className="shrink-0" size={20} /><div><p className="font-semibold">We couldn’t load this information.</p><p className="mt-1">{message}</p>{retry && <button className="mt-3 text-sm font-semibold underline" onClick={retry}>Try again</button>}</div></div> }

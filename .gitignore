@@ -1,0 +1,28 @@
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+
+# Java / Maven
+**/target/
+**/*.class
+
+# Node / React
+**/node_modules/
+**/dist/
+
+# IDE and operating system files
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Local credentials and private keys
+*.pem
+*.key
