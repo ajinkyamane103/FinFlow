@@ -55,9 +55,9 @@ class FinanceIntegrationTests {
                 .andExpect(jsonPath("$.email").value("owner@example.com"))
                 .andExpect(jsonPath("$.password").doesNotExist());
 
-        long primaryId = createAccount(token, "Primary", "CHECKING", "USD", "100.00");
-        long savingsId = createAccount(token, "Savings", "SAVINGS", "USD", "0.00");
-        long reserveId = createAccount(token, "Reserve", "SAVINGS", "USD", "0.00");
+        long primaryId = createAccount(token, "Primary", "CHECKING", "INR", "100.00");
+        long savingsId = createAccount(token, "Savings", "SAVINGS", "INR", "0.00");
+        long reserveId = createAccount(token, "Reserve", "SAVINGS", "INR", "0.00");
 
         mockMvc.perform(post("/api/accounts/{id}/deposits", primaryId)
                         .header("Authorization", bearer(token))
@@ -128,7 +128,7 @@ class FinanceIntegrationTests {
                 .andExpect(jsonPath("$.content").isArray());
         mockMvc.perform(get("/api/dashboard").header("Authorization", bearer(token)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalBalanceByCurrency.USD").value(95.00));
+                .andExpect(jsonPath("$.totalBalanceByCurrency.INR").value(95.00));
 
         mockMvc.perform(post("/api/accounts/{id}/withdrawals", primaryId)
                         .header("Authorization", bearer(token))
@@ -149,7 +149,7 @@ class FinanceIntegrationTests {
     void concurrentDuplicateDepositDoesNotApplyTwice() throws Exception {
         register("concurrent@example.com");
         String token = login("concurrent@example.com");
-        long accountId = createAccount(token, "Concurrent", "CHECKING", "USD", "0.00");
+        long accountId = createAccount(token, "Concurrent", "CHECKING", "INR", "0.00");
 
         try (var executor = Executors.newFixedThreadPool(2)) {
             CountDownLatch start = new CountDownLatch(1);
