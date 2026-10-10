@@ -1,7 +1,7 @@
 # FinFlow Full-Stack Personal Finance Management
-![FinFlow Dashboard](Doc/finflowdashboard.png)
-FinFlow is a full-stack personal finance management application built with React, Spring Boot, and PostgreSQL. It allows authenticated users to manage financial accounts, perform deposits and withdrawals, transfer money between their own accounts, and view transaction history through a responsive web interface.
 
+FinFlow is a full-stack personal finance management application built with React, Spring Boot, and PostgreSQL. It allows authenticated users to manage financial accounts, perform deposits and withdrawals, transfer money between their own accounts, and view transaction history through a responsive web interface.
+![FinFlow Dashboard](Doc/finflowdashboard.png)
 
 ## Features
 
