@@ -61,25 +61,17 @@ FinFlow is a full-stack personal finance management application built with React
 
 ## Architecture
 
-```text
-                    FinFlow
-                       |
-          +------------+------------+
-          |                         |
-    React Frontend             Spring Boot API
-    Vite Development           REST Controllers
-          |                         |
-          |                    Spring Security
-          |                    JWT Validation
-          |                         |
-          +---- HTTP / JSON --------+
-                                    |
-                              Service Layer
-                                    |
-                              Spring Data JPA
-                                    |
-                               PostgreSQL
-```
+FinFlow follows a layered full-stack architecture. The React frontend communicates with the Spring Boot REST API using HTTP and JSON. Spring Security validates JWT tokens, while the service and persistence layers interact with PostgreSQL.
+
+![FinFlow Full-Stack Architecture](Doc/FinFlow%20Full-Stack%20Architecture%20Diagram.png)
+
+**Request flow:**
+1. The user interacts with the React frontend.
+2. The frontend sends API requests to Spring Boot, including a JWT bearer token for protected endpoints.
+3. Spring Security validates authentication and authorization.
+4. Controllers and services process the request.
+5. Spring Data JPA accesses PostgreSQL.
+6. The API returns a JSON response to the frontend.
 
 The React application communicates with the Spring Boot API over HTTP. The backend validates authentication and authorization, applies business rules, and persists financial records in PostgreSQL.
 
