@@ -1,181 +1,314 @@
-# FinFlow
+# FinFlow — Full-Stack Personal Finance Management
 
-FinFlow is a personal-finance API for authenticated user profiles, self-owned bank accounts, and a simple transaction ledger. It is a learning/prototype application, not regulated banking infrastructure.
+FinFlow is a full-stack personal finance management application built with React, Spring Boot, and PostgreSQL. It allows authenticated users to manage financial accounts, perform deposits and withdrawals, transfer money between their own accounts, and view transaction history through a responsive web interface.
 
-## Technology
+**Project status:** Functional local prototype. Not a regulated banking or payment-processing system.
 
-- Java 21 and Spring Boot 4.1.1
-- Spring Web MVC, Security, Data JPA, and Jakarta Validation
-- PostgreSQL 18 for development/runtime; H2 only for automated tests
-- JJWT 0.12.6 (all three JJWT modules use the same version)
-- BCrypt password hashing and stateless signed JWT bearer authentication
-- Maven Wrapper
+## Features
+
+### Authentication and Security
+- User registration and login.
+- JWT bearer-token authentication.
+- BCrypt password hashing.
+- Protected frontend routes.
+- Authenticated user profile.
+- User-specific account access.
+- Automatic logout when authentication becomes invalid.
+
+### Account Management
+- Create and list financial accounts.
+- Support account types and currencies accepted by the backend.
+- Initialize accounts with an opening balance.
+- View account balances.
+- Maintain a transaction ledger.
+
+### Financial Transactions
+- Deposit money into an account.
+- Withdraw money subject to available-balance checks.
+- Transfer money between eligible accounts owned by the same user.
+- View transaction history with pagination.
+- Use idempotency keys to prevent duplicate financial operations when supported by the API.
+- Refresh account and dashboard data after successful operations.
+
+### Dashboard
+- View account summaries.
+- Review balances grouped by currency.
+- See recent transactions.
+- Navigate to account and transaction management.
+
+### User Interface
+- Responsive React interface.
+- Dashboard layout with sidebar navigation.
+- Login and registration pages.
+- Account and transaction forms.
+- Loading, validation, error, and success states.
+
+## Technology Stack
+
+| Component | Technology |
+|---|---|
+| Frontend | React, JavaScript, Vite |
+| Styling | Tailwind CSS |
+| Backend | Java 21, Spring Boot 4.1.1 |
+| REST API | Spring Web MVC |
+| Security | Spring Security, JWT, BCrypt |
+| Persistence | Spring Data JPA, Hibernate |
+| Database | PostgreSQL 18 |
+| Testing database | H2 |
+| Build tool | Maven Wrapper |
+| API testing | Postman |
+| Version control | Git and GitHub |
+
+## Architecture
+
+```text
+                    FinFlow
+                       |
+          +------------+------------+
+          |                         |
+    React Frontend             Spring Boot API
+    Vite Development           REST Controllers
+          |                         |
+          |                    Spring Security
+          |                    JWT Validation
+          |                         |
+          +---- HTTP / JSON --------+
+                                    |
+                              Service Layer
+                                    |
+                              Spring Data JPA
+                                    |
+                               PostgreSQL
+```
+
+The React application communicates with the Spring Boot API over HTTP. The backend validates authentication and authorization, applies business rules, and persists financial records in PostgreSQL.
+
+The browser never connects directly to PostgreSQL.
+
+## Repository Structure
+
+```text
+FinFlow/
+├── README.md
+├── .gitignore
+├── finflow/
+│   ├── pom.xml
+│   ├── mvnw
+│   ├── mvnw.cmd
+│   ├── .mvn/
+│   └── src/
+│       ├── main/
+│       └── test/
+└── finflow-frontend/
+    ├── package.json
+    ├── package-lock.json
+    ├── .env.example
+    ├── vite.config.js
+    └── src/
+```
 
 ## Prerequisites
 
-- JDK 21 (configure both IntelliJ Project SDK and Maven runner JDK to 21)
-- PostgreSQL 18 running locally
-- A PostgreSQL database and user with access to it
+Install the following software:
 
-Create a local database (choose a strong password rather than the example placeholder):
+- JDK 21.
+- Node.js 20 or newer.
+- npm.
+- PostgreSQL.
+- Git.
+
+## Local Setup
+
+### 1. Clone the repository
+
+```powershell
+git clone https://github.com/ajinkyamane103/FinFlow.git
+cd FinFlow
+```
+
+### 2. Configure PostgreSQL
+
+Start PostgreSQL and create a database for local development.
 
 ```sql
-CREATE USER finflow_app WITH PASSWORD 'choose-a-local-password';
+CREATE USER finflow_app WITH PASSWORD 'choose-your-own-strong-password';
 CREATE DATABASE finflow OWNER finflow_app;
 ```
 
-The default database URL is `jdbc:postgresql://localhost:5432/finflow`. Hibernate uses `ddl-auto=update` for local development and will create/update the application tables. Never point this setting at a production database without an explicit migration strategy.
+If you already have a local database and user, you can use those instead. Configure the credentials through environment variables.
 
-## Environment variables on Windows
+### 3. Configure the backend
 
-No JWT or database password is committed to the project. Configure these environment variables before starting the application:
+Open a PowerShell terminal in the repository root:
 
 ```powershell
-$env:JWT_SECRET = "replace-with-a-random-secret-of-at-least-32-bytes"
-$env:DB_USERNAME = "finflow_app"
-$env:DB_PASSWORD = "choose-a-local-password"
-# Optional when the default local PostgreSQL URL is not correct:
+cd .\finflow
+
 $env:DB_URL = "jdbc:postgresql://localhost:5432/finflow"
+$env:DB_USERNAME = "finflow_app"
+$env:DB_PASSWORD = Read-Host "Enter PostgreSQL password"
+$env:JWT_SECRET = Read-Host "Enter your JWT secret"
 ```
 
-Generate a random local secret with a password manager or a cryptographically secure tool, for example:
+Use a cryptographically random JWT secret that satisfies the backend's minimum length requirement. Keep it private and do not commit it to Git.
 
-```powershell
-$bytes = New-Object byte[] 48
-[System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
-[Convert]::ToBase64String($bytes)
+Configure the backend to read the environment variables:
+
+```properties
+spring.datasource.url=${DB_URL:jdbc:postgresql://localhost:5432/finflow}
+spring.datasource.username=${DB_USERNAME:postgres}
+spring.datasource.password=${DB_PASSWORD}
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+app.jwt.secret=${JWT_SECRET}
+app.jwt.expiration-ms=3600000
 ```
 
-`JWT_SECRET` must be at least 32 bytes. The application fails clearly at startup if it is absent, too short, or if the expiration setting is invalid. Use a separately managed value in production; do not put it in Git, `application.properties`, Postman collections, or logs.
+Preserve the other required properties already present in `application.properties`. The example above illustrates the database and JWT settings; it is not a replacement for the complete configuration.
 
-For a persistent Windows user variable, use `setx JWT_SECRET "..."`, then restart IntelliJ/your terminal. In IntelliJ, the preferred per-project setup is **Run → Edit Configurations → Spring Boot → FinFlowApplication → Environment variables**, then add `JWT_SECRET`, `DB_USERNAME`, `DB_PASSWORD`, and optionally `DB_URL`.
-
-## Run
-
-The Maven project directory is the nested `finflow` folder, which contains `mvnw.cmd`. From `C:\Users\Ajinkya Mane\Downloads\finflow`, run:
+Start the backend:
 
 ```powershell
-Set-Location .\finflow
-$env:JAVA_HOME = "C:\Program Files\Eclipse Adoptium\jdk-21.0.12.101-hotspot"
-$env:Path = "$env:JAVA_HOME\bin;$env:Path"
 .\mvnw.cmd spring-boot:run
 ```
 
-In IntelliJ, open `finflow/pom.xml`, select JDK 21, reload Maven, configure the environment variables above, and run `FinFlowApplication`.
+The backend runs on `http://localhost:8080` by default.
 
-## Authentication and errors
+Health check:
 
-The API is stateless: no form login, HTTP Basic, or server sessions are enabled. Send a token as:
+```http
+GET http://localhost:8080/api/health
+```
+
+Environment variables configured in PowerShell apply to that terminal session. Configure them separately in IntelliJ if you launch the backend from the IDE.
+
+### 4. Configure and run the frontend
+
+Open a second PowerShell terminal from the repository root:
+
+```powershell
+cd .\finflow-frontend
+Copy-Item .env.example .env
+npm install
+npm run dev
+```
+
+Open the local URL printed by Vite, normally:
+
+`http://localhost:5173`
+
+The checked-in frontend environment example uses `/api`, and the development server is configured to proxy API requests to the backend. Keep this configuration consistent with `vite.config.js`.
+
+Never put a database password or JWT signing secret in a frontend environment variable. Vite variables prefixed with `VITE_` are exposed to browser code.
+
+## API Endpoints
+
+The following endpoints are documented by the backend. Protected endpoints require a valid JWT bearer token.
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/health` | Health check |
+| POST | `/api/auth/register` | Register a user |
+| POST | `/api/auth/login` | Authenticate and obtain a token |
+| GET | `/api/users/me` | Retrieve the authenticated profile |
+| GET | `/api/dashboard` | Retrieve dashboard data |
+| POST | `/api/accounts` | Create an account |
+| GET | `/api/accounts` | List the user's accounts |
+| GET | `/api/accounts/{accountId}` | Retrieve an account |
+| POST | `/api/accounts/{accountId}/deposits` | Deposit funds |
+| POST | `/api/accounts/{accountId}/withdrawals` | Withdraw funds |
+| POST | `/api/accounts/transfers` | Transfer between eligible accounts |
+| GET | `/api/accounts/{accountId}/transactions?page=0&size=20&sort=createdAt,desc` | Retrieve paginated transaction history |
+
+The exact request and response formats are defined by the backend controllers and DTOs. Consult the backend source code for field-level details.
+
+## Authentication
+
+After successful login, the API returns an access token. Send it in the authorization header for protected requests:
 
 ```http
 Authorization: Bearer <accessToken>
 ```
 
-Public routes are `GET /api/health`, `POST /api/auth/register`, and `POST /api/auth/login`. All other API routes require a valid bearer token.
+The frontend handles token use and invalid-session responses. Never commit real access tokens or share them publicly.
 
-Error bodies have JSON fields including `timestamp`, `status`, `error`, `message`, `path`, and (for validation errors) `fieldErrors`.
+## Testing
 
-- Invalid request body/validation: `400`
-- Missing, malformed, expired, tampered, or invalid credentials: `401`
-- Authenticated but not authorized: `403`
-- Duplicate/conflicting state, including insufficient funds: `409`
-- Missing resource or another user's account: `404`
-- Unexpected failure: `500` without implementation details
+### Backend tests
 
-CORS is intentionally not enabled because no browser client origin is currently specified. If a browser front end is added, configure only its known HTTPS origin(s), methods, and headers; do not use wildcard origins with credentials.
-
-## API endpoints
-
-| Method | Route | Description |
-| --- | --- | --- |
-| GET | `/api/health` | Public health response |
-| POST | `/api/auth/register` | Register a user; email is normalized and password BCrypt-hashed |
-| POST | `/api/auth/login` | Return `{ accessToken, tokenType: "Bearer", expiresIn }` |
-| GET | `/api/users/me` | Authenticated user profile; no password hash |
-| POST | `/api/accounts` | Create a self-owned account |
-| GET | `/api/accounts` | List the caller's accounts |
-| GET | `/api/accounts/{accountId}` | Get one caller-owned account |
-| POST | `/api/accounts/{accountId}/deposits` | Add money and write a ledger entry |
-| POST | `/api/accounts/{accountId}/withdrawals` | Withdraw with sufficient-funds and locking checks |
-| POST | `/api/accounts/transfers` | Transfer between the caller's same-currency accounts atomically |
-| GET | `/api/accounts/{accountId}/transactions?page=0&size=20&sort=createdAt,desc` | Paginated transaction history |
-| GET | `/api/dashboard` | Accounts, per-currency balance totals, and recent transactions |
-
-All money fields are `BigDecimal` values (send them as JSON numbers or strings with up to four fractional digits). There is no client endpoint to edit an account balance directly. The account's initial balance is recorded as an `OPENING_BALANCE` ledger entry.
-
-For a retry-safe deposit, withdrawal, or transfer, supply a unique `Idempotency-Key` header (maximum 100 characters). FinFlow records a SHA-256 fingerprint of the operation (type, accounts, amount, and description): an exact retry returns the original ledger result, while reusing the key for a different request returns `409 Conflict`. A database unique constraint also prevents concurrent duplicate requests from applying twice.
-
-## Postman smoke test
-
-1. `POST http://localhost:8080/api/auth/register`
-
-```json
-{
-  "fullName": "Ada Lovelace",
-  "email": "ada@example.com",
-  "password": "Password123"
-}
-```
-
-2. `POST http://localhost:8080/api/auth/login`
-
-```json
-{
-  "email": "ada@example.com",
-  "password": "Password123"
-}
-```
-
-Copy `accessToken` into a Postman collection variable named `token`.
-
-3. `GET http://localhost:8080/api/test/protected` with `Authorization: Bearer {{token}}` returns `200`. Without that header it returns `401`; with `Bearer not-a-jwt` it also returns `401`.
-
-4. `POST http://localhost:8080/api/accounts` with `Authorization: Bearer {{token}}`:
-
-```json
-{
-  "name": "Primary",
-  "accountType": "CHECKING",
-  "currency": "USD",
-  "initialBalance": "100.00"
-}
-```
-
-5. `POST http://localhost:8080/api/accounts/{accountId}/deposits` with `Authorization: Bearer {{token}}` and `Idempotency-Key: deposit-001`:
-
-```json
-{
-  "amount": "25.00",
-  "description": "Example deposit"
-}
-```
-
-6. `POST http://localhost:8080/api/accounts/transfers` with the same authorization and a new `Idempotency-Key`:
-
-```json
-{
-  "sourceAccountId": 1,
-  "destinationAccountId": 2,
-  "amount": "10.00",
-  "description": "Move to savings"
-}
-```
-
-## Tests
-
-Automated tests use an in-memory H2 database and never require PostgreSQL. They cover registration, duplicate registration, BCrypt storage, login/password rejection, JWT signature/expiry/malformed-token behavior, `400`/`401`/`403`/`409` responses, account ownership, ledger writes, idempotency, transfer atomic behavior, dashboard data, and insufficient funds.
+From the repository root:
 
 ```powershell
-Set-Location "C:\Users\Ajinkya Mane\Downloads\finflow\finflow"
-$env:JAVA_HOME = "C:\Program Files\Eclipse Adoptium\jdk-21.0.12.101-hotspot"
-$env:Path = "$env:JAVA_HOME\bin;$env:Path"
+cd .\finflow
+
 .\mvnw.cmd clean compile
 .\mvnw.cmd clean test
 ```
 
-## Current limitations
+The automated backend tests use H2, an in-memory database. Passing those tests does not, by itself, verify every workflow against PostgreSQL.
 
-- This is not a regulated bank, payment processor, or production financial system.
-- No external bank connections, card processing, foreign-exchange conversion, statements, audit export, or email verification are implemented.
-- Account creation accepts an initial balance for setup only; real systems need controlled funding workflows.
-- H2 tests give fast coverage. Before production, add PostgreSQL-backed integration tests, schema migrations (for example, Flyway), operational monitoring, rate limits, token rotation/revocation policy, and independent security review.
+### Frontend build
+
+From the repository root:
+
+```powershell
+cd .\finflow-frontend
+
+npm install
+npm run build
+```
+
+### Manual integration testing
+
+Verify the following in the running application:
+
+1. Register a new user and log in.
+2. Create an account and confirm its opening balance.
+3. Deposit money and verify the updated balance.
+4. Withdraw money and verify the updated balance.
+5. Transfer funds between two eligible accounts.
+6. Verify the transaction history.
+7. Refresh the page and confirm data persists.
+8. Log out and confirm protected pages require authentication.
+9. Confirm one user cannot access another user's accounts.
+10. Confirm insufficient funds and duplicate requests are handled correctly.
+
+## Security and Configuration
+
+- Never commit database passwords, JWT secrets, access tokens, or private keys.
+- Use environment variables for sensitive configuration.
+- Keep `.env` files out of Git.
+- Review the entire Git history if a secret was previously committed.
+- Use HTTPS and restricted CORS origins for deployment.
+- Use database migrations instead of relying on automatic schema updates for production.
+- Add PostgreSQL-backed integration tests and independent security review before any production financial use.
+
+## Current Limitations
+
+FinFlow is a learning and portfolio project, not regulated banking infrastructure.
+
+It does not provide external bank integrations, payment-card processing, real-world money movement, foreign-exchange conversion, email verification, or a complete production banking security and compliance framework.
+
+Dashboard metrics and charts are limited to the data exposed by the backend. No exchange rates or unsupported financial statistics are fabricated.
+
+## Future Improvements
+
+- Deploy the frontend and backend.
+- Add automated PostgreSQL integration tests.
+- Introduce database migrations with Flyway.
+- Add CI with GitHub Actions.
+- Add rate limiting and a documented token revocation strategy.
+- Improve monitoring, logging, and operational error reporting.
+- Add screenshots and a live demo link after deployment.
+
+## Author
+
+**Ajinkya Mane**
+
+GitHub: https://github.com/ajinkyamane103
+
+Project repository: https://github.com/ajinkyamane103/FinFlow
+
+---
+
+*Built as a full-stack software engineering portfolio project using React, Java, Spring Boot, and PostgreSQL.*
